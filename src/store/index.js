@@ -3,7 +3,8 @@ import Vue from 'vue';
 Vue.use(Vuex)
 const store = new Vuex.Store({
   state:{
-    form:[]
+    form:[],
+    subOptions:[],
   },
   mutations:{
     save:(state,payload)=>{
@@ -15,13 +16,24 @@ const store = new Vuex.Store({
       }else{
         state.form[value] = payload
       }
+    },
+    saveSub:(state,payload)=>{
+      let option = {
+        value:JSON.stringify({
+          nodeDataArray:payload.nodeDataArray,
+          linkDataArray:payload.linkDataArray
+        }),
+        label:payload.name
+      }
+      state.subOptions.push(option)
     }
   },
   actions:{
 
   },
   getters:{
-    form:state=>state.form
+    form:state=>state.form,
+    subOptions:state=>state.subOptions
   },
   strict:process.env.NODE_ENV !== 'production'
 })

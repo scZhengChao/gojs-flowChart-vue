@@ -14,7 +14,16 @@
     <div class="handle">
       <el-button @click="saveSubGram" type="primary" class="handleBtn">保 存</el-button>
       <el-button @click="sendGram" type="primary" class="handleBtn">发 送</el-button>
+       <el-button @click="clearAll" type="primary" class="handleBtn">清空面板</el-button>
       <el-checkbox v-model="checked" class="checked" @change='checkSource'>source</el-checkbox>
+       <el-select v-model="subGram" placeholder="请选择流程" class="subGram" @change='selectSub'>
+          <el-option
+              v-for="item in subOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+          </el-option>
+      </el-select>
     </div>
     <node-form :selectNodeForm='selectNodeForm' :visible.sync='visible'></node-form>
     <source-box :visible.sync ='checked' :sourceData='source'></source-box>
@@ -89,7 +98,8 @@ export default {
     source:{
       nodeInfo:{},
       formList:[]
-    }
+    },
+    subGram:''
   }},
   created() {
     
@@ -103,11 +113,12 @@ export default {
       selectNode:'selectNode',  //节点信息
    })
    this.flow.showMessage=(data)=>{
-     let item = that.form.find(item=>{
-       return item.id == data.key
+     this.form.forEach(item=>{
+       if(item.id == data.key){
+         this.selectNodeForm = cloneDeep(item)
+       }
      })
-     item != undefined?that.selectNodeForm = cloneDeep(item):that.selectNodeForm = Object.assign({class:-1},data)
-     that.visible = true
+     this.visible = true
    }
   //  this.flow.showLink=(data)=>{
   //    this.selectNodeForm = Object.assign({
@@ -115,24 +126,39 @@ export default {
   //    },data)
   //    that.visible = true
   //  }
+    this.flow.setForm = (data)=>{
+      this.$store.commit('save',{
+        id:data.key,
+        group:data.group == undefined?'null':data.group,
+        class:data.class == undefined?-1:data.class
+      })
+    }
   },
   methods: {
 
    saveSubGram(){
-
+     let subGramData =  this.flow.saveSub()
+     this.$store.commit('saveSub',subGramData)
    },
    sendGram(){
 
+   },
+   clearAll(){
+     this.flow.clear()
    },
    checkSource(data){
     if(!data) return
     this.source.nodeInfo = this.flow.save()
     this.source.formList = this.form
+   },
+   selectSub(data){
+     let subGramData = JSON.parse(data)
+     this.flow.loadSub(subGramData)
    }
   },
   computed:{
       ...mapGetters([
-      'form'
+      'form','subOptions'
     ])
   }
 }

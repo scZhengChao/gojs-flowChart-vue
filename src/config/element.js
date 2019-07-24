@@ -1,4 +1,4 @@
-import {Dialog,Button,Form,FormItem,Input,Checkbox} from 'element-ui'
+import {Dialog,Button,Form,FormItem,Input,Checkbox,Select,Option} from 'element-ui'
 export default {
   install:function(Vue){
     Vue.use(Dialog)
@@ -7,5 +7,7 @@ export default {
     Vue.use(FormItem)
     Vue.use(Input)
     Vue.use(Checkbox)
+    Vue.use(Select)
+    Vue.use(Option)
   }
 }

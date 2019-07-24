@@ -3,7 +3,7 @@
       <div slot="title" class="title">node info</div>
       <el-form :model='selectNodeForm' label-width="60px" :rules='rules' ref="nodeInfoForm">
         <el-form-item label="id" prop="id"  >
-          <el-input :value="selectNodeForm.key" :disabled="true"></el-input>
+          <el-input :value="selectNodeForm.id" :disabled="true"></el-input>
         </el-form-item>
         <el-form-item label="group" prop="group" >
           <el-input :value="selectNodeForm.group?selectNodeForm.group:'false'" :disabled="true"></el-input>
@@ -63,7 +63,7 @@ export default {
      this.$refs.nodeInfoForm.validate((valid)=>{
        if(valid){
           this.$store.commit('save',{
-            id:this.selectNodeForm.key,
+            id:this.selectNodeForm.id,
             group:this.selectNodeForm.group == undefined?false:this.selectNodeForm.group,
             class:this.selectNodeForm.class == undefined?false:this.selectNodeForm.class
           })

@@ -1,3 +1,4 @@
+import {cloneDeep} from 'lodash'
 class FlowChart {
   constructor(options) {
     if (!options.myDiagramDiv) throw new Error('画布node节点必须传入')
@@ -199,12 +200,7 @@ class FlowChart {
   
       //     });
     
-      that.myDiagram.addDiagramListener('ExternalObjectsDropped',function(e){
-          e.subject.each(function(n){
-            // n.data.key = that.uuid()
-            that.myDiagram.model.setDataProperty(n.data, 'key', that.uuid() )
-         });
-      })  
+      that.setKey()
 
       var linkSelectionAdornmentTemplate =
         objGo(go.Adornment, "Link",
@@ -219,7 +215,7 @@ class FlowChart {
           { relinkableFrom: true, relinkableTo: true, reshapable: true },
           {
             routing: go.Link.AvoidsNodes,
-            curve: go.Link.JumpOver, //    go.Link.Bezier 连接的曲线
+            curve:  go.Link.Orthogonal,  //    go.Link.Bezier 连接的曲线  go.Link.JumpOver,
             corner: 5,
             toShortLength: 4,
           },
@@ -435,6 +431,7 @@ class FlowChart {
     //     myDiagram.model.addLinkData(item);
     //   })
     // })
+
   }
   showMessage(data) {}
   showLink(data) {}
@@ -457,6 +454,65 @@ class FlowChart {
       let time = Date.parse(new Date()).toString()
       return uuid+time;
   }
+  clear(){
+    this.myDiagram.nodes.each(n=>{
+      n.findLinksConnected().each((link)=>{ this.myDiagram.model.removeLinkData(link.data);});
+      this.myDiagram.model.removeNodeData(n.data); 
+    })
+  }
+  saveSub(){
+      var name = prompt('请输入子流程名称')
+      if(name != ''){
+        let data = cloneDeep(this.save())
+        let key = this.uuid()
+        data.nodeDataArray.forEach((item,index)=>{
+          if( item.group) return
+            item.group = key
+        })
+        data.nodeDataArray.push({key,text:name,isGroup:true})
+        
+        let dragData = {
+          "nodeDataArray":data.nodeDataArray,
+          "linkDataArray":data.linkDataArray,
+          "name":name,
+        }
+        this.clear()
+        return dragData
+      }else{
+        alert('必须输入流程名')
+        return false
+      }
+      
+  }
+  loadSub(data){
+    let flag = true
+    this.myDiagram.nodes.each((n)=>{
+      if(n.data.isGroup){
+        flag = false
+      }
+    })
+    if(!flag){
+      alert('已存在子流程，加载失败')
+      return false
+    }
+    data.nodeDataArray.forEach(item=>{
+      this.myDiagram.model.addNodeData(item)
+    })
+    data.linkDataArray.forEach(item=>{
+      this.myDiagram.model.addLinkData(item);
+    })
+  }
+  setKey(){
+    let that = this
+    this.myDiagram.addDiagramListener('ExternalObjectsDropped',function(e){
+      e.subject.each(function(n){
+        that.myDiagram.model.setDataProperty(n.data, 'key', that.uuid() )
+        that.setForm(n.data)
+     });
+     
+    })  
+  }
+  setForm(data){}
 
 }
 export default FlowChart
