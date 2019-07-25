@@ -26,6 +26,14 @@ const store = new Vuex.Store({
         label:payload.name
       }
       state.subOptions.push(option)
+    },
+    deleteForm:(state,payload)=>{
+      let index = state.form.findIndex(item=>item.id == payload.key)
+      state.form.splice(index,1)
+    },
+    setParents:(state,payload)=>{
+      let son = state.form.find(item=>item.id == payload.son)
+      son.parent?son.parent.push(payload.father):son.parent = [payload.father]
     }
   },
   actions:{

@@ -37,14 +37,14 @@ class FlowChart {
               interval: 10
             })
           ),
-          allowDrop: true, // 允许从模型节点拖拽过来
-          "draggingTool.dragsLink": true, //拖拽链接
-          "draggingTool.isGridSnapEnabled": true, //是否启用网格快照
-          "linkingTool.isUnconnectedLinkValid": true, //未连接的链接是否有效
-          "linkingTool.portGravity": 20, // 港重力
-          "relinkingTool.isUnconnectedLinkValid": true, // 未连接的链接是否有效
-          "relinkingTool.portGravity": 20, // 港重力
-          "relinkingTool.fromHandleArchetype": //从处理原型
+          allowDrop: true, 
+          "draggingTool.dragsLink": true, 
+          "draggingTool.isGridSnapEnabled": true, 
+          "linkingTool.isUnconnectedLinkValid": true, 
+          "linkingTool.portGravity": 20, 
+          "relinkingTool.isUnconnectedLinkValid": true, 
+          "relinkingTool.portGravity": 20, 
+          "relinkingTool.fromHandleArchetype": 
             objGo(go.Shape, "Diamond", {
               segmentIndex: 0,
               cursor: "pointer",
@@ -52,7 +52,7 @@ class FlowChart {
               fill: "tomato",
               stroke: "darkred"
             }),
-          "relinkingTool.toHandleArchetype": // to --from
+          "relinkingTool.toHandleArchetype": 
             objGo(go.Shape, "Diamond", {
               segmentIndex: -1,
               cursor: "pointer",
@@ -60,42 +60,48 @@ class FlowChart {
               fill: "darkred",
               stroke: "tomato"
             }),
-          "linkReshapingTool.handleArchetype": //  handle
+          "linkReshapingTool.handleArchetype": 
             objGo(go.Shape, "Diamond", {
               desiredSize: new go.Size(7, 7),
               fill: "lightblue",
               stroke: "deepskyblue"
             }),
-          // rotatingTool: objGo(TopRotatingTool), // 旋转工具
-          "rotatingTool.snapAngleMultiple": 15, //提前角多
-          "rotatingTool.snapAngleEpsilon": 15, //斜角
-          "undoManager.isEnabled": true, // 撤销功能 ctrl + z
-          "toolManager.mouseWheelBehavior": go.ToolManager.WheelZoom, //滚轮放大缩小
-          "clickCreatingTool.archetypeNodeData": { text: "new node" }, //支持双击点击创建一个新节点
-          "commandHandler.copiesTree": true, //允许使用ctrl+c、ctrl+v复制粘贴
+          // rotatingTool: objGo(TopRotatingTool), 
+          "rotatingTool.snapAngleMultiple": 15, 
+          "rotatingTool.snapAngleEpsilon": 15, 
+          // "undoManager.isEnabled": true, 
+          "toolManager.mouseWheelBehavior": go.ToolManager.WheelZoom, 
+          // "clickCreatingTool.archetypeNodeData": { text: "new node" }, 
+          "commandHandler.copiesTree": false, 
         });
-  
-      // --------------------------------------------------------------------------------------------------
-      // 定义用于创建通常透明的"端口"的函数
-      //"name"用作GraphObject。portId,"spot"用于控制链接如何连接
-      //以及端口在节点上的位置,以及boolean"output"和"input"参数
-      //控制用户是否可以从端口或到端口绘制链接
-      function makePort(name, spot, output, input) {     //连接线的小端口
-        //端口基本上只是一个透明的小正方形  
+        that.myDiagram.commandHandler.doKeyDown = function() {
+          var e = that.myDiagram.lastInput;
+          var control = e.control || e.meta;
+          var key = e.key;
+          if (control && (key === 'C' || key === 'V')) return;
+          // if (key === 'Del' || key === 'Backspace') return;
+          go.CommandHandler.prototype.doKeyDown.call(this);
+        };
+
+      function makePort(name, spot, output, input) {     
         return objGo(go.Shape, "Circle",
           {
-            fill: null,  // 默认情况下看不到;设置为半透明灰色的showSmallPorts,定义如下  背景颜色
-            stroke: null,   //边框颜色
-            desiredSize: new go.Size(8, 8),  //大小
-            alignment: spot,  // 对齐主形状上的端口
-            alignmentFocus: spot,  // 对齐主形状上的形状端口
-            portId: name,  // 将此对象声明为"port"
-            fromSpot: spot, toSpot: spot,  // 声明此端口上链接可能连接的位置
-            fromLinkable: output, toLinkable: input,  // 声明用户是否可以从这里绘制链接
-            cursor: "pointer"  // 显示不同的光标以指示潜在的链接点
+            fill: null,  
+            stroke: null,   
+            desiredSize: new go.Size(8, 8), 
+            alignment: spot,  
+            alignmentFocus: spot,  
+            portId: name,  
+            fromSpot: spot, toSpot: spot,  
+            fromLinkable: output, toLinkable: input,  
+            cursor: "pointer" 
           });
       }
-  
+      that.myDiagram.addDiagramListener("SelectionDeleted", function(e) {
+        e.subject.each(function(n){
+            that.delete(n.data)
+       });
+      })  
       //节点选择装饰模板
       var nodeSelectionAdornmentTemplate =
         objGo(go.Adornment, "Auto",
@@ -130,23 +136,22 @@ class FlowChart {
         );
      
       //节点模板
-      that.myDiagram.nodeTemplate =    //定义个简单的模板节点  Spot
+      that.myDiagram.nodeTemplate =  
         objGo(go.Node, "Spot",
           { locationSpot: go.Spot.Center },
-          new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),   //根据对关系图的更改来更新一些数据属性是很常见的。例如,当用户更改部分时。通过拖动节点,可以使用TwoWay绑定自动保持节点的模型数据同步。
+          new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
           { selectable: true, selectionAdornmentTemplate: nodeSelectionAdornmentTemplate },
           { resizable: true, resizeObjectName: "PANEL", resizeAdornmentTemplate: nodeResizeAdornmentTemplate },
           { rotatable: true, rotateAdornmentTemplate: nodeRotateAdornmentTemplate },
           new go.Binding("angle").makeTwoWay(),
-          // 主对象是一个用形状包围文本块的面板
           objGo(go.Panel, "Auto",
             { name: "PANEL" },
             new go.Binding("desiredSize", "size", go.Size.parse).makeTwoWay(go.Size.stringify),
-            objGo(go.Shape, "Rectangle",  // 默认图
+            objGo(go.Shape, "Rectangle",  
               {
-                portId: "", // 默认端口:如果链接数据上没有点,则使用最近的端口
+                portId: "", 
                 fromLinkable: true, toLinkable: true, cursor: "pointer",
-                fill: "white",  // 默认的颜色
+                fill: "white",  
                 strokeWidth: 2,
               },
               new go.Binding("figure"),
@@ -163,12 +168,11 @@ class FlowChart {
               },
               new go.Binding("text").makeTwoWay())
           ),
-          // 四个命名的小港口,每边一个:
           makePort("T", go.Spot.Top, false, true),
           makePort("L", go.Spot.Left, true, true),
           makePort("R", go.Spot.Right, true, true),
           makePort("B", go.Spot.Bottom, true, false),
-          { // 处理鼠标进入/离开事件来显示/隐藏端口
+          { 
             mouseEnter: function (e, node) { showSmallPorts(node, true); },
             mouseLeave: function (e, node) { showSmallPorts(node, false); },
             doubleClick: function (e, obj) { that.showMessage(obj.part.data); },
@@ -185,9 +189,7 @@ class FlowChart {
       var inspector = new Inspector(that.selectNode, that.myDiagram,
         {
           properties: {
-            // key would be automatically added for nodes, but we want to declare it read-only also:
             "key": { readOnly: true, show: Inspector.showIfPresent },
-            // fill and stroke would be automatically added for nodes, but we want to declare it a color also:
             "fill": { show: Inspector.showIfPresent, type: 'color' },
             "stroke": { show: Inspector.showIfPresent, type: 'color' },
             'loc': { show: Inspector.showIfPresent },
@@ -199,7 +201,6 @@ class FlowChart {
       //       console.log(diagramEvent)
   
       //     });
-    
       that.setKey()
 
       var linkSelectionAdornmentTemplate =
@@ -229,7 +230,7 @@ class FlowChart {
             new go.Binding("visible", "isSelected").ofObject(),
             objGo(go.Shape, "RoundedRectangle",  // 链接的形状
               { fill: "#F8F8F8", stroke: null }),
-            objGo(go.TextBlock, 'write here',
+            objGo(go.TextBlock, ' ',
               {
                 textAlign: "center",
                 font: "10pt helvetica, arial, sans-serif",
@@ -247,23 +248,6 @@ class FlowChart {
           }
         );
   
-      // load();  //   从JSON文本加载初始关系图
-      // let nodeDataArrayKey = []
-      // let nodeDataArray = []
-      // function random(a, b) {
-      //   return Math.round(Math.random() * (b - a) + a)
-      // }
-      // function randomColor() {
-      //   return `rgb(${random(0, 255)},${random(0, 255)},${random(0, 255)})`
-      // }
-      // go.Shape.getFigureGenerators().toArray().forEach(item => {
-      //   nodeDataArrayKey.push(item.key)
-      // })
-      // Array.from(new Set(nodeDataArrayKey)).forEach(item => {
-      //   nodeDataArray.push({ text: 'text', figure: item, width: 60, height: 60, fill: randomColor() })
-      // })
-  
-      // 初始化页面左侧的调色板   是myDiagram 的一个扩展类
       that.myPalette =
         objGo(go.Palette, that.myPaletteDiv,  // 必须命名或引用DIV HTML元素吗
           {
@@ -292,11 +276,6 @@ class FlowChart {
                   toShortLength: 4
                 },
                 new go.Binding("points"),
-                //new go.Binding([origin], [target], [filter = Func]) 这是 gojs 中的数据绑定, 使用该方法实//现了模板与真实数据之间的传
-                // 递该方法能在任意构造器中使用
-                // origin: 该构造器中的属性名
-                // target: 需要绑定到数据集中的属性名
-                // filter: 过滤函数
                 objGo(go.Shape,  // 链接路径形状
                   { isPanelMain: true, strokeWidth: 2 }),
                 objGo(go.Shape,  // 箭头
@@ -306,18 +285,10 @@ class FlowChart {
               { text: "text", figure: "Circle", fill: "#00AD5F", width: 60, height: 60 ,key:'saf'},
               { text: "text", figure: "Database", fill: "lightgray", width: 60, height: 60 ,key:'fa'},
               { text: "text", figure: "Diamond", fill: "lightskyblue", width: 60, height: 60 },
-              // { text: "text", figure: "Circle", fill: "#CE0620", width: 60, height: 60 },
-              // { text: "text", figure: "RoundedRectangle", fill: "lightyellow", width: 60, height: 60 },
-              // { text: "text", figure: "Rectangle", fill: "#00AD5F", width: 60, height: 60 }, 
-              // { text: "text", figure: "Ellipse", fill: "#00AD5F", width: 60, height: 60 },
               { text: "text", figure: "TriangleRight", fill: "#00AD5F", width: 60, height: 60 },
               { text: "text", figure: "TriangleDown", fill: "#00AD5F", width: 60, height: 60 },
               { text: "text", figure: "TriangleLeft", fill: "#00AD5F", width: 60, height: 60 },
               { text: "text", figure: "TriangleUp", fill: "#00AD5F", width: 60, height: 60 },
-              // { text: "text", figure: "MinusLine", fill: "#00AD5F", width: 60, height: 60 },
-              // { text: "text", figure: "PlusLine", fill: "#00AD5F", width: 60, height: 60 },
-              // { text: "text", figure: "XLine", fill: "#00AD5F", width: 60, height: 60 },
-              // { text: "text", figure: "Hexagon", fill: "#00AD5F", width: 60, height: 60 },
               // ...nodeDataArray
             ], [
                 // 调色板还有一个断开连接的链接,用户可以拖放该链接
@@ -344,93 +315,7 @@ class FlowChart {
     TopRotatingTool.prototype.rotate = function (newangle) {
       go.RotatingTool.prototype.rotate.call(this, newangle + 90);
     };
-    // --------------------------------------------------------------
-
-
-    
-  // 显示用户可以编辑的JSON格式的图表模型
-  // function save() {   //储存
-  //   saveDiagramProperties();  // 在写JSON之前先做这个
-  //   document.getElementById("mySavedModel").value = myDiagram.model.toJson();
-  //   myDiagram.isModified = false;
-  // }
-  // function load() {   //加载
-  //   myDiagram.model = go.Model.fromJson(document.getElementById("mySavedModel").value ) ;   //创建模型数据 每一个数据都代表相应的元素,并且将模型绑定在画布上
-  //   loadDiagramProperties();  // 按照模型来做。模型数据已经进入内存
-  // }
-
-  // function saveDiagramProperties() {   //储存流程信息到json
-  //   myDiagram.model.modelData.position = go.Point.stringify(myDiagram.position);
-  // }
-  // function loadDiagramProperties(e) {     // 根据信息加载流程图
-  //   // set Diagram.initialPosition, not Diagram.position, to handle initialization side-effects
-  //   var pos = myDiagram.model.modelData.position;
-  //   if (pos) myDiagram.initialPosition = go.Point.parse(pos);
-  // }
-
-
-
-
-    // function expt(){
-    //   var name = prompt('请输入子流程名称')
-    //   var oc = document.querySelector('#myDiagramDiv').children[0]
-    //   var srcSource = oc.toDataURL('image/jpg');  //图片类型 base64
-    //   let div = document.createElement('div')
-    //   saveDiagramProperties();  // 在写JSON之前先做这个
-    //   let data = JSON.parse(myDiagram.model.toJson())
-    //   let dragData = {
-    //     "nodeDataArray":data.nodeDataArray,
-    //     "linkDataArray":data.linkDataArray
-    //   }
-    //   div.dataJson = dragData ;
-    //   div.dataName = name
-    //   div.draggable = true
-    //   div.style.cssText='width:60px;height:60px;border:1px solid green;margin:5px;background-image:url('+srcSource+');background-size:100% 100%;float:left'
-    //   document.querySelector('.pic').appendChild(div)
-    // }
-    // var dragImg = document.querySelector('.pic')
-    // dragImg.addEventListener('dblclick',function(eve){
-    //   let target = eve.target || eve.srcElement
-    //   if(target.nodeName  !== 'DIV') return
-    //   saveDiagramProperties();  // 在写JSON之前先做这个
-    //   freshData = JSON.parse(myDiagram.model.toJson())
-    //   let keyArr = [],maxKey
-    //   freshData.nodeDataArray.forEach(item => {
-    //         keyArr.push(item.key)
-    //   });
-    //   if(keyArr.length == 0 || Math.max.apply(null,keyArr) < 0){
-    //     maxKey = 1
-    //   }else {
-    //     maxKey = Math.max.apply(null,keyArr) 
-    //   }
-    // let group = target.dataJson ,groupName = target.dataName
-    // let groupKey = maxKey++
-    //   group.nodeDataArray.forEach((item,index)=>{
-    //     if(!item.group){
-    //       let key= maxKey++
-    //       group.linkDataArray.forEach((value,i)=>{
-    //         if(item.key == value.from){
-    //           value.from = key
-    //         }
-    //         if(item.key == value.to){
-    //           value.to = key
-    //         }
-    //       })
-    //       item.key = key
-    //       item.group = groupKey
-    //     }
-    //   })
-    //   group.nodeDataArray.push({
-    //     key:groupKey,text:groupName,isGroup:true
-    //   })
-      
-    //   group.nodeDataArray.forEach(item=>{
-    //     myDiagram.model.addNodeData(item)
-    //   })
-    //   group.linkDataArray.forEach(item=>{
-    //     myDiagram.model.addLinkData(item);
-    //   })
-    // })
+   
 
   }
   showMessage(data) {}
@@ -461,8 +346,9 @@ class FlowChart {
     })
   }
   saveSub(){
-      var name = prompt('请输入子流程名称')
-      if(name != ''){
+    if(!this.checkRule()) return 
+    var name = prompt('请输入子流程名称')
+    if(name != '' && name != null){
         let data = cloneDeep(this.save())
         let key = this.uuid()
         data.nodeDataArray.forEach((item,index)=>{
@@ -481,14 +367,17 @@ class FlowChart {
       }else{
         alert('必须输入流程名')
         return false
-      }
-      
+      }   
   }
   loadSub(data){
     let flag = true
+    let groupArr = data.nodeDataArray.filter(item=>item.isGroup)
     this.myDiagram.nodes.each((n)=>{
+      if(!flag) return 
       if(n.data.isGroup){
-        flag = false
+        if(groupArr.length > 0 && groupArr.some(item=>item.key == n.data.key)){
+          flag = false
+        }
       }
     })
     if(!flag){
@@ -513,6 +402,92 @@ class FlowChart {
     })  
   }
   setForm(data){}
+  delete(data){}
+  checkRule(){
+    try{
+      let {nodes,links} = this.getData()
+      this.linkNone(links)
+      this.onlyOne(nodes,links)
+      this.mustIfElse(links)
+      return true
+    }catch(err){
+      return false
+    }
+  }
+  linkNone(links){
+    links.forEach(item=>{
+      if(item.from && item.to){
+        return true
+      }else{
+        alert('连线有错误')
+        throw new Error('连线有错误')
+      }
+    })
+  }
+  getData(){
+    let nodesArr = []
+    this.myDiagram.nodes.each(({data})=>{
+      if(data.isGroup) return
+      nodesArr.push(data)
+    })
+    let linksArr = []
+    this.myDiagram.links.each(({data})=>{
+      linksArr.push(data)
+    })
+    return {
+      nodes:nodesArr,
+      links:linksArr
+    }
+   
+  }
+  onlyOne(nodes,links){
+    let that = this
+    let onlyOne = []
+    let isOnly = true
+    nodes.forEach(node=>{
+      isOnly = true
+      links.forEach(link=>{
+        if(node.key == link.to){
+          that.target.$store.commit('setParents',{father:link.from,son:link.to})
+          isOnly = false
+        }
+      })
+      if(isOnly){
+        onlyOne.push(node)
+      }
+    })
+    if(onlyOne.length == 1){
+      return true
+    }else if(onlyOne.length < 1){
+      alert('你没有开始项')
+      throw new Error('你没有开始项')
+    }else if(onlyOne.length > 1){
+      alert('你有两个以上的开始项')
+      throw new Error('你有两个以上的开始项')
+    }
+  }
+  mustIfElse(links){
+    let twoUp = [];
+    let one = {}
+    links.forEach(item=>{
+      if(one[item.from] && !twoUp.includes(item.from)){
+        twoUp.push(item.from)
+      }else{
+        one[item.from] = 1
+      }
+    })
+    twoUp.forEach(id=>{
+      links.forEach(link=>{
+        if(id == link.from && (!link.text || !link.text.trim())){
+            alert('你必须在多分支添加条件')
+            throw new Error('你必须在多分支添加条件')
+        }
+      })
+    })
+  }
+
+  
+
 
 }
 export default FlowChart

@@ -14,7 +14,8 @@
     <div class="handle">
       <el-button @click="saveSubGram" type="primary" class="handleBtn">保 存</el-button>
       <el-button @click="sendGram" type="primary" class="handleBtn">发 送</el-button>
-       <el-button @click="clearAll" type="primary" class="handleBtn">清空面板</el-button>
+      <el-button @click="clearAll" type="primary" class="handleBtn">清空面板</el-button>
+      <el-button @click="check" type="primary" class="handleBtn">校 验</el-button>
       <el-checkbox v-model="checked" class="checked" @change='checkSource'>source</el-checkbox>
        <el-select v-model="subGram" placeholder="请选择流程" class="subGram" @change='selectSub'>
           <el-option
@@ -133,12 +134,15 @@ export default {
         class:data.class == undefined?-1:data.class
       })
     }
+    this.flow.delete = (data)=>{
+      this.deleteForm(data)
+    }
   },
   methods: {
 
    saveSubGram(){
      let subGramData =  this.flow.saveSub()
-     this.$store.commit('saveSub',subGramData)
+     subGramData && this.$store.commit('saveSub',subGramData) 
    },
    sendGram(){
 
@@ -154,6 +158,13 @@ export default {
    selectSub(data){
      let subGramData = JSON.parse(data)
      this.flow.loadSub(subGramData)
+   },
+   deleteForm(data){
+     if(data.isGroup || !data.key) return
+     this.$store.commit('deleteForm',cloneDeep(data))
+   },
+   check(){
+     this.flow.checkRule()
    }
   },
   computed:{
