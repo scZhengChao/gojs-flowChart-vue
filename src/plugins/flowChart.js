@@ -341,7 +341,10 @@ class FlowChart {
   }
   clear(){
     this.myDiagram.nodes.each(n=>{
-      n.findLinksConnected().each((link)=>{ this.myDiagram.model.removeLinkData(link.data);});
+      n.findLinksConnected().each((link)=>{ 
+        if(!link) return
+        this.myDiagram.model.removeLinkData(link.data)
+        ;});
       this.myDiagram.model.removeNodeData(n.data); 
     })
   }
