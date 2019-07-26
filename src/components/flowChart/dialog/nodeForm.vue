@@ -5,11 +5,28 @@
         <el-form-item label="id" prop="id"  >
           <el-input :value="selectNodeForm.id" :disabled="true"></el-input>
         </el-form-item>
-        <el-form-item label="group" prop="group" >
-          <el-input :value="selectNodeForm.group?selectNodeForm.group:'false'" :disabled="true"></el-input>
+        <el-form-item label="parent" prop="parent" >
+            <el-select  v-model="selectParent" placeholder="父节点">
+              <el-option
+                v-for="item in selectNodeForm.parent"
+                :key="item"
+                :label="item"
+                :value="item">
+              </el-option>
+            </el-select>
         </el-form-item>
-        <el-form-item label="class" prop="class" >
-          <el-input v-model="selectNodeForm.class" placeholder="0为开始项,只能有一个为0"></el-input>
+        <el-form-item label="son" prop="son" >
+            <el-select  v-model="selectSon" placeholder="子节点">
+              <el-option
+                v-for="item in selectNodeForm.son"
+                :key="item"
+                :label="item"
+                :value="item">
+              </el-option>
+            </el-select>
+        </el-form-item>
+        <el-form-item label="other" prop="other" >
+          <el-input v-model="otherTerm"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer">
@@ -30,24 +47,29 @@ export default {
     visible:Boolean
   },
   data(){
-   var floar = (rule,value,callback)=>{
-      if(isNaN(value)){
-        callback(new Error('必须输入数字'))
-      }
-      callback()
-    }  
+  //  var floar = (rule,value,callback)=>{
+  //     if(isNaN(value)){
+  //       callback(new Error('必须输入数字'))
+  //     }
+  //     callback()
+  //   }  
   return{
     view:this.visible,
     rules:{
-      class:[{
-        required:true,
-        message:'输入不能为空',
-      },{
-        validator:floar,
-        trigger:'blur'
-      }]
     },
+    selectParent:'',
+    selectSon:'',
   }},
+  computed:{
+    otherTerm:{
+      get(){
+        return this.selectNodeForm.others
+      },
+      set(value){
+        this.$store.commit('modifyForm',{id:this.selectNodeForm.id,data:value})
+      }
+    }
+  },
   watch:{
     view:{
       handler:function(newValue,oldValue){
@@ -62,11 +84,6 @@ export default {
     saveHandle(){
      this.$refs.nodeInfoForm.validate((valid)=>{
        if(valid){
-          this.$store.commit('save',{
-            id:this.selectNodeForm.id,
-            group:this.selectNodeForm.group == undefined?false:this.selectNodeForm.group,
-            class:this.selectNodeForm.class == undefined?false:this.selectNodeForm.class
-          })
           this.view = false
        }
      })

@@ -8,14 +8,7 @@ const store = new Vuex.Store({
   },
   mutations:{
     save:(state,payload)=>{
-      let value = state.form.findIndex(item=>{
-        return item.id == payload.id
-      })
-      if(value == -1){
-        state.form.push(payload)
-      }else{
-        state.form[value] = payload
-      }
+      state.form.push(payload)
     },
     saveSub:(state,payload)=>{
       let option = {
@@ -49,6 +42,9 @@ const store = new Vuex.Store({
         item.parent.length = 0
         item.son.length = 0
       })
+    },
+    modifyForm:(state,payload)=>{
+      state.form.find(item=>item.id == payload.id).others = payload.data
     }
   },
   actions:{

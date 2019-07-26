@@ -26,7 +26,7 @@
           </el-option>
       </el-select>
     </div>
-    <node-form :selectNodeForm='selectNodeForm' :visible.sync='visible'></node-form>
+    <node-form :selectNodeForm.sync='selectNodeForm' :visible.sync='visible'></node-form>
     <source-box :visible.sync ='checked' :sourceData='source'></source-box>
   </div>
 </template>
@@ -60,7 +60,6 @@
  .diagram{
    flex: 1;
  }
-
   .info{
     background: #399;
     width: 200px;
@@ -86,7 +85,7 @@ import {mapGetters} from 'vuex';
 import FlowChart from '@/plugins/flowChart.js'
 import nodeForm from './dialog/nodeForm.vue'
 import sourceBox from './dialog/source'
-import { type } from 'os';
+// import { type } from 'os';
 export default {
   name:'flowChart',
   components:{
@@ -114,12 +113,9 @@ export default {
       selectNode:'selectNode',  //节点信息
    })
    this.flow.showMessage=(data)=>{
-     this.form.forEach(item=>{
-       if(item.id == data.key){
-         this.selectNodeForm = cloneDeep(item)
-       }
-     })
-     this.visible = true
+     this.check()
+     this.selectNodeForm  = this.form.find(item => item.id == data.key)
+     this.selectNodeForm && (this.visible = true)
    }
   //  this.flow.showLink=(data)=>{
   //    this.selectNodeForm = Object.assign({
@@ -131,7 +127,8 @@ export default {
       this.$store.commit('save',{
         id:data.key,
         parent:[],
-        son:[]
+        son:[],
+        others:'你可以输入想要保存的额外信息'
       })
     }
     this.flow.delete = (data)=>{
