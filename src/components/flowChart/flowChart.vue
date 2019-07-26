@@ -130,8 +130,8 @@ export default {
     this.flow.setForm = (data)=>{
       this.$store.commit('save',{
         id:data.key,
-        group:data.group == undefined?'null':data.group,
-        class:data.class == undefined?-1:data.class
+        parent:[],
+        son:[]
       })
     }
     this.flow.delete = (data)=>{
@@ -139,7 +139,6 @@ export default {
     }
   },
   methods: {
-
    saveSubGram(){
      let subGramData =  this.flow.saveSub()
      subGramData && this.$store.commit('saveSub',subGramData) 
@@ -152,6 +151,7 @@ export default {
    },
    checkSource(data){
     if(!data) return
+    this.check()
     this.source.nodeInfo = this.flow.save()
     this.source.formList = this.form
    },

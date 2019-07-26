@@ -347,6 +347,7 @@ class FlowChart {
         ;});
       this.myDiagram.model.removeNodeData(n.data); 
     })
+    this.target.$store.commit('clearForm')
   }
   saveSub(){
     if(!this.checkRule()) return 
@@ -359,11 +360,11 @@ class FlowChart {
             item.group = key
         })
         data.nodeDataArray.push({key,text:name,isGroup:true})
-        
         let dragData = {
           "nodeDataArray":data.nodeDataArray,
           "linkDataArray":data.linkDataArray,
           "name":name,
+          "form":cloneDeep(this.target.$store.getters.form)
         }
         this.clear()
         return dragData
@@ -387,6 +388,7 @@ class FlowChart {
       alert('已存在子流程，加载失败')
       return false
     }
+    this.target.$store.commit('loadSubForm',data.form)
     data.nodeDataArray.forEach(item=>{
       this.myDiagram.model.addNodeData(item)
     })
@@ -410,6 +412,7 @@ class FlowChart {
     try{
       let {nodes,links} = this.getData()
       this.linkNone(links)
+      this.beforeOnlyOne()
       this.onlyOne(nodes,links)
       this.mustIfElse(links)
       return true
@@ -420,7 +423,12 @@ class FlowChart {
   linkNone(links){
     links.forEach(item=>{
       if(item.from && item.to){
-        return true
+        if(item.from == item.to){
+          alert('你的连线不能自己连接自己')
+          throw new Error('你的连线不能自己连接自己')
+        }else{
+          return true
+        }
       }else{
         alert('连线有错误')
         throw new Error('连线有错误')
@@ -469,6 +477,9 @@ class FlowChart {
       throw new Error('你有两个以上的开始项')
     }
   }
+  beforeOnlyOne(){
+    this.target.$store.commit('clearParent')
+  }
   mustIfElse(links){
     let twoUp = [];
     let one = {}
@@ -488,9 +499,5 @@ class FlowChart {
       })
     })
   }
-
-  
-
-
 }
 export default FlowChart

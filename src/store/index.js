@@ -21,7 +21,8 @@ const store = new Vuex.Store({
       let option = {
         value:JSON.stringify({
           nodeDataArray:payload.nodeDataArray,
-          linkDataArray:payload.linkDataArray
+          linkDataArray:payload.linkDataArray,
+          form:payload.form
         }),
         label:payload.name
       }
@@ -33,7 +34,21 @@ const store = new Vuex.Store({
     },
     setParents:(state,payload)=>{
       let son = state.form.find(item=>item.id == payload.son)
-      son.parent?son.parent.push(payload.father):son.parent = [payload.father]
+      son.parent.includes(payload.father)?"":son.parent.push(payload.father)
+      let father = state.form.find(item=>item.id == payload.father)
+      father.son.includes(payload.son)?"":father.son.push(payload.son)
+    },
+    clearForm:(state,payload)=>{
+      state.form = []
+    },
+    loadSubForm:(state,payload)=>{
+      state.form = state.form.concat(payload)
+    },
+    clearParent:(state,payload)=>{
+      state.form.forEach(item=>{
+        item.parent.length = 0
+        item.son.length = 0
+      })
     }
   },
   actions:{
